@@ -1,0 +1,30 @@
+<h1>{{ food.name }}</h1>
+<p>{{ food.description }}</p>
+<img src="{{}}" alt="{{ food.name }}">
+
+<!-- Display Comments -->
+{% for comment in food.comments %}
+    <div>
+        <p>{{ comment.submitted_by }}: {{ comment.comment }} (Rating: {{ comment.rating }})</p>
+        {% if comment.image_url %}
+            <img src="{{}}" alt="Comment Image">
+        {% endif %}
+    </div>
+{% endfor %}
+
+<!-- Add Comment Form -->
+<form action="{{ url_for('add_comment', food_id=food.id) }}" method="post">
+    <textarea name="comment" required></textarea>
+    <input type="number" name="rating" min="1" max="5" required>
+    <input type="text" name="image_url">
+    <button type="submit">Submit Comment</button>
+</form>
+
+<!-- Report Food or Comment -->
+<form action="{{ url_for('report') }}" method="post">
+    <textarea name="report_text" required></textarea>
+    <input type="hidden" name="food_id" value="{{ food.id }}">
+    <input type="hidden" name="comment_id" value="{{ comment.id }}">
+    <button type="submit">Report</button>
+</form>
+
