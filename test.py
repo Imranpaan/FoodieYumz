@@ -12,6 +12,11 @@ class AdminSignupForm(FlaskForm):
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Sign up')
 
+class AdminLoginForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Login')
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret_key_here'
@@ -35,25 +40,33 @@ class User(UserMixin, db.Model):
         self.username = username
         self.password = generate_password_hash(password)
         self.is_admin = is_admin
-
+ 
     def check_password(self, password):
         return check_password_hash(self.password, password)
 
 @login_manager.user_loader
-def user_loader(username):
-    return User.query.filter_by(username=username).first()
+def user_loader(user_id):
+    return User.query.get(user_id)
 
-@app.route('/admin/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user = user_loader(username)
+    form = AdminLoginForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+        user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
             login_user(user)
-            return redirect(url_for('admin' if user.is_admin else 'index'))
-        flash('Invalid username or password')
-    return render_template('login.html')
+            # Redirect based on user role
+            if user.is_admin:
+                return redirect(url_for('admin'))
+            else:
+                return redirect(url_for('index'))
+        else:
+            flash('Invalid username or password')
+            print("Failed login attempt")
+    return render_template('login.html', form=form)
+
 
 @app.route('/logout')
 @login_required
@@ -65,8 +78,9 @@ def logout():
 @login_required
 def admin():
     if not current_user.is_admin:
-        return 'Access denied', 403
-    return render_template('admin.html')
+        flash('Access denied: Admins only.')
+        return redirect(url_for('index'))
+    return render_template('admin_page.html')
 
 @app.route('/admin/signup', methods=['GET', 'POST'])
 def admin_signup():
@@ -83,7 +97,7 @@ def admin_signup():
         db.session.commit()
         login_user(new_user)
         flash('Admin user created successfully. Please login to access the admin page.')
-        return redirect(url_for('admin'))  # Redirect to login page after signup
+        return redirect(url_for('login'))  # Redirect to login page after signup
     return render_template('admin_signup.html', form=form)
 
 @app.route('/index')
