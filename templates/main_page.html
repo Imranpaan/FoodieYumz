@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multimedia University Restaurants</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Restaurants in Multimedia University</h1>
+    </header>
+
+    <main>
+        <section>
+            <ul>
+                {% for restaurant in restaurants %}
+                    <li>
+                        <h2>{{ restaurant.name }}</h2>
+                        <p>{{ restaurant.description }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    </main>
+</body>
+</html>

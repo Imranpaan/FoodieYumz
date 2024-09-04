@@ -1,27 +1,163 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        /* Inline CSS for quick customization */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-image: url("{{ url_for('static', filename='images/background_image.jpg') }}");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #333;
+        }
+        header {
+            background-image: url("{{ url_for('static', filename='images/food_banner.jpg') }}");
+            background-size: cover;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            text-shadow: 2px 2px 4px #000;
+        }
+        h1 {
+            margin: 0;
+            font-size: 3em;
+        }
+        main {
+            background-color: rgba(255, 255, 255, 0.8);
+            margin: 20px auto;
+            padding: 20px;
+            width: 80%;
+            border-radius: 10px;
+        }
+        form {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            align-items: center; /* Align items vertically in the center */
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .delete-btn {
+            background-color: #f44336;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+        .delete-btn:hover {
+            background-color: #e53935;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        .restaurant-section {
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .restaurant-name-input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        p {
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-    <h1>Admin Page</h1>
-    <p>Welcome, {{ current_user.username }}!</p>
+    <header>
+        <h1>Admin Page</h1>
+    </header>
 
-    <h2>Modify Main Page</h2>
-    <form action="" method="post">
-        <label for="main_page_content">Main Page Content:</label>
-        <textarea id="main_page_content" name="main_page_content"></textarea>
-        <br>
-        <input type="submit" value="Update Main Page">
-    </form>
+    <section>
+        <p>Welcome, {{ current_user.username }}!</p>
+    </section>
 
-    <h2>Manage Users</h2>
-    <ul>
-        {% for user in users %}
-            <li>{{ user.username }} ({{ 'Admin' if user.is_admin else 'User' }})</li>
-        {% endfor %}
-    </ul>
+    <main>
+        <!-- Section to modify the main page content -->
+        <h2>Add a Restaurant</h2>
+        <form action="" method="post">
+            {{ form.hidden_tag() }} <!-- Include CSRF token and other hidden fields -->
+            <div>
+                {{ form.name.label }}<br>
+                {{ form.name(size=50) }}
+            </div>
+            <div>
+                {{ form.description.label }}<br>
+                {{ form.description(cols=50, rows=4) }}
+            </div>
+            <div>
+                {{ form.submit() }}
+            </div>
+        </form>
 
-    <p><a href="{{ url_for('logout') }}">Logout</a></p>
+        <h2>Existing Restaurants</h2>
+        <ul>
+            <!-- List of Existing Restaurants with Editable Forms -->
+            {% for restaurant in restaurants %}
+            <li>
+                <div class="restaurant-section">
+                    <form method="POST" action="{{ url_for('admin') }}" style="display:inline;">
+                        {{ form.hidden_tag() }} <!-- Include CSRF token and other hidden fields -->
+                        <input type="hidden" name="restaurant_id" value="{{ restaurant.id }}">
+                        <div>
+                            {{ form.name.label }}<br>
+                            <input type="text" name="name" value="{{ restaurant.name }}" class="restaurant-name-input">
+                        </div>
+                        <div>
+                            {{ form.description.label }}<br>
+                            {{ form.description(cols=50, rows=4, value=restaurant.description) }}
+                        </div>
+                        <div class="form-actions">
+                            {{ form.submit() }}
+                            <!-- Delete Form -->
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> <!-- Hidden CSRF token -->
+                            <input type="submit" class="delete-btn" value="Delete" formaction="{{ url_for('delete_restaurant') }}" onclick="return confirm('Are you sure you want to delete this restaurant?');">
+                        </div>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <!-- Logout link -->
+        <p><a href="{{ url_for('logout') }}">Logout</a></p>
+    </main>
 </body>
 </html>

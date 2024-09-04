@@ -1,46 +1,129 @@
 <!DOCTYPE html>
-<html>
-  <head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Sign-up</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
-      input[type="password"] {
-        font-family: monospace;
-        font-size: 18px;
-      }
+        /* Inline CSS for quick customization */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-image: url("{{ url_for('static', filename='images/background_image.jpg') }}");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-image: url("{{ url_for('static', filename='images/food_banner.jpg') }}");
+            background-size: cover;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            text-shadow: 2px 2px 4px #000;
+        }
+        h1 {
+            margin: 0;
+            font-size: 3em;
+        }
+        main {
+            background-color: rgba(255, 255, 255, 0.9);
+            margin: 50px auto;
+            padding: 30px;
+            width: 50%;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input[type="text"], input[type="password"] {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .message-container {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+        .message-container ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        .message-container li {
+            margin-bottom: 10px;
+        }
     </style>
-  </head>
-  <body>
-    <h1>Admin Sign-up</h1>
-    
-    <!-- Flash messages block -->
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul>
-          {% for message in messages %}
-            <li>{{ message }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
-    
-    <!-- Form starts here -->
-    <form action="" method="post">
-      {{ form.hidden_tag() }}
-      
-      <!-- Username field -->
-      <label for="username">{{ form.username.label }}</label>
-      {{ form.username(size=32) }}<br><br>
-      
-      <!-- Password field -->
-      <label for="password">{{ form.password.label }}</label>
-      {{ form.password(size=32) }}<br><br>
-      
-      <!-- Confirm Password field -->
-      <label for="confirm_password">{{ form.confirm_password.label }}</label>
-      {{ form.confirm_password(size=32) }}<br><br>
-      
-      <!-- Submit button -->
-      {{ form.submit() }}
-    </form>
-  </body>
+</head>
+<body>
+    <header>
+        <h1>Admin Sign-up</h1>
+    </header>
+
+    <main>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="message-container">
+              <ul>
+                {% for message in messages %}
+                  <li>{{ message }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+        {% endwith %}
+        
+        <form action="" method="post">
+          {{ form.hidden_tag() }}
+          
+          <!-- Username field -->
+          <div>
+            <label for="username">{{ form.username.label }}</label><br>
+            {{ form.username(size=32) }}
+          </div>
+          
+          <!-- Password field -->
+          <div>
+            <label for="password">{{ form.password.label }}</label><br>
+            {{ form.password(size=32) }}
+          </div>
+          
+          <!-- Confirm Password field -->
+          <div>
+            <label for="confirm_password">{{ form.confirm_password.label }}</label><br>
+            {{ form.confirm_password(size=32) }}
+          </div>
+          
+          <!-- Submit button -->
+          <div>
+            {{ form.submit() }}
+          </div>
+        </form>
+    </main>
+</body>
 </html>

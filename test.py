@@ -3,7 +3,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm, CSRFProtect
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Length, EqualTo
 
 class AdminSignupForm(FlaskForm):
@@ -17,6 +17,11 @@ class AdminLoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
 
+class EditRestaurantForm(FlaskForm):
+    name = StringField('Restaurant Name', validators=[DataRequired(), Length(max=100)])
+    description = TextAreaField('Description')
+    submit = SubmitField('Save Changes')
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret_key_here'
@@ -28,6 +33,15 @@ csrf = CSRFProtect(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+class Restaurant(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+
+    def __init__(self, name, description=""):
+        self.name = name
+        self.description = description
 
 # Define a User class
 class User(UserMixin, db.Model):
@@ -43,12 +57,17 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
+    
+class MainPageContentForm(FlaskForm):
+    main_page_content = TextAreaField('Main Page Content', validators=[DataRequired()])
+    submit = SubmitField('Update Content')
+
 
 @login_manager.user_loader
 def user_loader(user_id):
     return User.query.get(user_id)
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/admin/login', methods=['GET', 'POST'])
 def login():
     form = AdminLoginForm()
     if form.validate_on_submit():
@@ -73,13 +92,63 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
-@app.route('/admin')
+@app.route('/admin', methods=['GET', 'POST'])
 @login_required
 def admin():
     if not current_user.is_admin:
         flash('Access denied: Admins only.')
         return redirect(url_for('index'))
-    return render_template('admin_page.html')
+    
+    form = EditRestaurantForm()
+    main_page_form = MainPageContentForm()
+    restaurants = Restaurant.query.all()
+
+    if main_page_form.validate_on_submit():
+        flash('Main page content updated successfully.')
+
+    if form.validate_on_submit():
+        restaurant_id = request.form.get("restaurant_id")
+        if restaurant_id:
+            restaurant = Restaurant.query.get(restaurant_id)
+            if restaurant:
+                restaurant.name = form.name.data
+                restaurant.description = form.description.data
+                db.session.commit()
+                flash('Restaurant details updated successfully.')
+            else:
+                flash('Restaurant not found.')
+        else:
+            new_restaurant = Restaurant(name=form.name.data, description=form.description.data)
+            db.session.add(new_restaurant)
+            db.session.commit()
+            flash('New restaurant added successfully.')
+        
+        return redirect(url_for('admin'))
+
+    return render_template('admin_page.html', form=form, main_page_form=main_page_form, restaurants=restaurants)
+
+
+@app.route('/admin/delete_restaurant', methods=['POST'])
+@login_required
+def delete_restaurant():
+    if not current_user.is_admin:
+        flash('Access denied: Admins only.')
+        return redirect(url_for('index'))
+    
+    restaurant_id = request.form.get('restaurant_id')  # Use .get() to avoid KeyError
+    if restaurant_id:
+        restaurant = Restaurant.query.get(restaurant_id)
+        if restaurant:
+            db.session.delete(restaurant)
+            db.session.commit()
+            flash('Restaurant deleted successfully.')
+        else:
+            flash('Restaurant not found.')
+    else:
+        flash('No restaurant ID provided.')
+
+    return redirect(url_for('admin'))
+
 
 @app.route('/admin/signup', methods=['GET', 'POST'])
 def admin_signup():
@@ -96,8 +165,15 @@ def admin_signup():
         db.session.commit()
         login_user(new_user)
         flash('Admin user created successfully. Please login to access the admin page.')
-        return redirect(url_for('login'))  # Redirect to login page after signup
+        return redirect(url_for('login'))  # go to signup page
     return render_template('admin_signup.html', form=form)
+
+@app.route('/main')
+def main():
+    restaurants = Restaurant.query.all()  
+    return render_template('main_page.html', restaurants=restaurants)
+
+
 
 
 @app.route('/index')
