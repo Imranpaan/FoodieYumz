@@ -94,22 +94,17 @@
             padding-top: 20px;
             border-top: 1px solid #ddd;
         }
-        .comment-form textarea {
-            width: 100%;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            margin-bottom: 10px;
-        }
-        .comment-form input[type="submit"] {
+        .comment-form a {
+            display: inline-block;
             background-color: #007BFF;
             color: white;
             padding: 10px 15px;
-            border: none;
             border-radius: 5px;
+            text-decoration: none;
             cursor: pointer;
+            margin-top: 10px;
         }
-        .comment-form input[type="submit"]:hover {
+        .comment-form a:hover {
             background-color: #0056b3;
         }
     </style>
@@ -133,11 +128,7 @@
             </div>
             {% endfor %}
             <div class="comment-form">
-                <form action="{{ url_for('comment_page', restaurant_id=restaurant.id) }}" method="post" enctype="multipart/form-data">
-                    <textarea name="comment" rows="5" placeholder="Enter your comment here..."></textarea>
-                    <input type="file" name="picture">
-                    <input type="submit" value="Submit Comment">
-                </form>
+                <a href="{{ url_for('comment_page', restaurant_id=restaurant.id) }}">Submit Comment</a>
             </div>
         </div>
         {% endfor %}
