@@ -106,7 +106,7 @@ def login():
                 return redirect(url_for('index'))
         else:
             flash('Invalid username or password')
-    return render_template('login.html', form=form)
+    return render_template('admin_login.html', form=form)
 
 @app.route('/logout')
 @login_required
@@ -132,9 +132,17 @@ def admin():
         flash('Restaurant added successfully.')
         return redirect(url_for('admin'))
 
-    # Fetch all restaurants and display them
-    restaurants = Restaurant.query.all()
-    return render_template('admin_page.html', form=form, restaurants=restaurants)
+    # Get search query
+    search_query = request.args.get('search', '')
+    
+    if search_query:
+        # If there is a search query, filter restaurants by name
+        restaurants = Restaurant.query.filter(Restaurant.name.ilike(f'%{search_query}%')).all()
+    else:
+        # Fetch all restaurants when there is no search query
+        restaurants = Restaurant.query.all()
+    
+    return render_template('admin_page.html', form=form, restaurants=restaurants, search_query=search_query)
 
 @app.route('/admin/add_restaurant', methods=['GET', 'POST'])
 @login_required
