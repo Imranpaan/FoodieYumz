@@ -3,25 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multimedia University Restaurants</title>
+    <title>Main Page</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-image: url("{{ url_for('static', filename='images/background_image.jpg') }}");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #333;
+        }
+        header {
+            background-image: url("{{ url_for('static', filename='images/food_banner.jpg') }}");
+            background-size: cover;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            text-shadow: 2px 2px 4px #000;
+        }
+        h1 {
+            margin: 0;
+            font-size: 3em;
+        }
+        main {
+            background-color: rgba(255, 255, 255, 0.8);
+            margin: 20px auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 1000px;
+            border-radius: 10px;
+        }
+        .restaurant {
+            background-color: white;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .restaurant h2 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+        .restaurant img {
+            max-width: 100px; /* Minimized size */
+            height: auto;
+            cursor: pointer;
+        }
+        .modal {
+            display: none; 
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.9);
+        }
+        .modal img {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 700px;
+        }
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 25px;
+            color: #f1f1f1;
+            font-size: 35px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .comment-form {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+        .comment-form textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+        }
+        .comment-form input[type="submit"] {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .comment-form input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
     <header>
-        <h1>Restaurants in Multimedia University</h1>
+        <h1>Restaurant Listings</h1>
     </header>
-
     <main>
-        <section>
-            <ul>
-                {% for restaurant in restaurants %}
-                    <li>
-                        <h2>{{ restaurant.name }}</h2>
-                        <p>{{ restaurant.description }}</p>
-                    </li>
-                {% endfor %}
-            </ul>
-        </section>
+        {% for restaurant in restaurants %}
+        <div class="restaurant">
+            <h2>{{ restaurant.name }}</h2>
+            <p>{{ restaurant.description }}</p>
+            <h3>Comments:</h3>
+            {% for comment in restaurant.comments %}
+            <div class="comment">
+                <p>{{ comment.content }}</p>
+                {% if comment.picture %}
+                <img src="{{ url_for('static', filename='uploads/' + comment.picture) }}" onclick="openModal(this.src)">
+                {% endif %}
+            </div>
+            {% endfor %}
+            <div class="comment-form">
+                <form action="{{ url_for('comment_page', restaurant_id=restaurant.id) }}" method="post" enctype="multipart/form-data">
+                    <textarea name="comment" rows="5" placeholder="Enter your comment here..."></textarea>
+                    <input type="file" name="picture">
+                    <input type="submit" value="Submit Comment">
+                </form>
+            </div>
+        </div>
+        {% endfor %}
     </main>
+
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <div class="modal-content">
+            <img id="modalImage" src="">
+        </div>
+    </div>
+
+    <script>
+        function openModal(src) {
+            document.getElementById('modalImage').src = src;
+            document.getElementById('myModal').style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById('myModal').style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('myModal')) {
+                closeModal();
+            }
+        }
+    </script>
 </body>
 </html>
