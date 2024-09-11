@@ -259,5 +259,13 @@ def comment_page(restaurant_id):
 
     return render_template('comment_page.html', restaurant=restaurant, form=form)
 
+@app.route('/delete-comment/<int:comment_id>', methods=['POST'])
+def delete_comment(comment_id):
+    # Code to delete the comment
+    comment = Comment.query.get_or_404(comment_id)
+    db.session.delete(comment)
+    db.session.commit()
+    return redirect(url_for('admin'))
+
 if __name__ == '__main__':
     app.run(debug=True)
