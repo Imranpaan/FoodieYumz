@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ restaurant.name }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('static/images/home_background.jpg');
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8); /* Slightly transparent background */
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .restaurant-info {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .restaurant-info img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }   
+        .food-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #fff;
+        }
+        .food-item img {
+            max-width: 150px;
+            border-radius: 5px;
+        }
+        .food-item h2 {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+        <h1>{{ restaurant.name }}</h1>
+        <img src="{{ restaurant.image }}" alt="{{ restaurant.name }}" style="width: 300px;">
+        <p>{{ restaurant.description }}</p>
+
+        <h2>Recommended Food</h2>
+        <ul>
+            {% for food in foods %}
+            <li>
+                <h3>{{ food.food_name }}</h3>
+            <p>{{ food.description }}</p>
+                <img src="{{ food.food_image }}" alt="{{ food.food_name }}" style="width: 150px;">
+            </li>
+        {% endfor %}
+    </ul>
+
+    <a href="{{ url_for('home') }}">Back to Home</a>
+</body>
+</html>

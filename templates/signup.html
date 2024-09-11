@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log In</title>
+    <title>Sign Up</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-image: url('static/images/login_background.jpg');
-            background-size: cover;
+            background-image: url('static/images/signup_background.jpg');
+            background-size: 120% 120%;
             background-position: center center;
             background-color: #f4f4f4;
             background-repeat: no-repeat;
@@ -17,17 +17,15 @@
             height: 100vh;
         }
         .container {
-            max-width: 400px;
+            max-width: 600px;
             margin: 0 auto;
-            background-color: rgba(255, 255, 255, 0.8);
+            background-color: #fff;
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-top: 100px;
         }
         h1 {
             color: #333;
-            text-align: center;
         }
         form div {
             margin-bottom: 15px;
@@ -49,41 +47,46 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            width: 100%;
         }
         form button:hover {
             background-color: #0056b3;
         }
         .login-link {
             margin-top: 20px;
-            text-align: center;
-        }
-        .login-link a {
-          color: #007bff;
-          text-decoration: none;
-        }
-        .login-link a:hover {
-          text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Log In</h1>
-        <form method="POST" action="{{ url_for('login') }}">
+        <h1>Sign Up</h1>
+        <form method="POST" action="{{ url_for('signup') }}">
             {{ form.hidden_tag() }}
+            <div>
+                {{ form.username.label }}
+                {{ form.username() }}
+                {% for error in form.username.errors %}
+                    <span>{{ error }}</span>
+                {% endfor %}
+            </div>
             <div>
                 {{ form.email.label }}
                 {{ form.email() }}
                 {% for error in form.email.errors %}
-                    <span style="color: red;">{{ error }}</span>
+                    <span>{{ error }}</span>
                 {% endfor %}
             </div>
             <div>
                 {{ form.password.label }}
                 {{ form.password() }}
                 {% for error in form.password.errors %}
-                  <span style="color: red;">{{ error }}</span>
+                    <span>{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div>
+                {{ form.confirm_password.label }}
+                {{ form.confirm_password() }}
+                {% for error in form.confirm_password.errors %}
+                    <span>{{ error }}</span>
                 {% endfor %}
             </div>
             <div>
@@ -91,7 +94,7 @@
             </div>
         </form>
         <div class="login-link">
-            <p>Haven't got an Account? <a href="{{ url_for('signup') }}">Sign Up</a></p>
+            <p>Already got an account? <a href="{{ url_for('login') }}">Log in</a></p>
         </div>
     </div>
 </body>

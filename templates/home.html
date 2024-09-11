@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('static/images/home_background.jpg');
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.6);
+        }
+        .button-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .button-container a {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+            width: 200px;
+        }
+        .button-container a:hover {
+            background-color: #0056b3;
+        }
+        .restaurant-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #fff;
+        }
+        .food-item img {
+            max-width: 150px;
+            border-radius: 5px;
+        }
+        .food-item h2 {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to FoodieYumz</h1>
+
+        <div class="button-container">
+            <a href="{{ url_for('login') }}">Log In</a>
+            <a href="{{ url_for('signup') }}">Sign Up</a>
+            <a href="{{ url_for('logout') }}">Log Out</a>
+        </div>
+
+    <div class="button-container">   
+        <h2>Restaurants</h2>
+        <a href="{{ url_for('deens_cafe_detail') }}" class="btn btn-primary">Deen's Cafe</a>
+        <a href="{{ url_for('haji_tapah_cafe_detail') }}" class="btn btn-primary">Haji Tapah Cafe</a>
+        <a href="{{ url_for('starbees_detail') }}" class="btn btn-primary">Starbees</a>
+    </div>
+    {% for item in food %}
+            <div class="food-item">
+                <img src="{{ item.food_image }}" alt="{{ item.food_name }}">
+                <div>
+                    <h2>{{ item.food_name }}</h2>
+                    <p>{{ item.description }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
