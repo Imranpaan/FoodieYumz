@@ -34,6 +34,35 @@
             max-width: 1000px;
             border-radius: 10px;
         }
+        .search-form {
+            margin-bottom: 20px;
+        }
+        .search-form input[type="text"] {
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: calc(100% - 130px);
+            margin-right: 10px;
+        }
+        .search-form input[type="submit"] {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background 0.3s, transform 0.2s;
+        }
+        .search-form input[type="submit"]:hover {
+            background: linear-gradient(45deg, #45a049, #4CAF50);
+            transform: scale(1.05);
+        }
+        .search-form input[type="submit"]:active {
+            background: linear-gradient(45deg, #388e3c, #4CAF50);
+        }
         .restaurant {
             background-color: white;
             border-radius: 8px;
@@ -114,6 +143,14 @@
         <h1>Restaurant Listings</h1>
     </header>
     <main>
+        <!-- Search form -->
+        <div class="search-form">
+            <form action="{{ url_for('main') }}" method="get">
+                <input type="text" name="search" placeholder="Search restaurants..." value="{{ search_query }}">
+                <input type="submit" value="Search">
+            </form>
+        </div>
+
         {% for restaurant in restaurants %}
         <div class="restaurant">
             <h2>{{ restaurant.name }}</h2>

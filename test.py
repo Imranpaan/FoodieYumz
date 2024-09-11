@@ -223,8 +223,17 @@ def index():
 
 @app.route('/main', methods=['GET'])
 def main():
-    restaurants = Restaurant.query.all()
-    return render_template('main_page.html', restaurants=restaurants)
+    search_query = request.args.get('search', '')
+    
+    if search_query:
+        # If there is a search query, filter restaurants by name
+        restaurants = Restaurant.query.filter(Restaurant.name.ilike(f'%{search_query}%')).all()
+    else:
+        # Fetch all restaurants when there is no search query
+        restaurants = Restaurant.query.all()
+    
+    return render_template('main_page.html', restaurants=restaurants, search_query=search_query)
+
 
 @app.route('/comment/<int:restaurant_id>', methods=['GET', 'POST'])
 def comment_page(restaurant_id):
