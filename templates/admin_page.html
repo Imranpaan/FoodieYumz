@@ -130,7 +130,7 @@
     </section>
 
     <main>
-        <!-- Search form -->
+        <!-- Search FUNCTION SINII -->
         <div class="search-form">
             <form action="{{ url_for('admin') }}" method="get">
                 <input type="text" name="search" placeholder="Search restaurants..." value="{{ search_query }}">
@@ -138,7 +138,7 @@
             </form>
         </div>
 
-        <!-- Section to add a restaurant -->
+        <!-- ADD RESTAURANTSS -->
         <h2>Add a Restaurant</h2>
         <form action="{{ url_for('add_restaurant') }}" method="post">
             {{ form.hidden_tag() }} <!-- Include CSRF token -->
@@ -179,7 +179,7 @@
             {% endfor %}
         </ul>
 
-        <!-- Logout link -->
+        <!-- Logout POOF -->
         <p><a href="{{ url_for('logout') }}">Logout</a></p>
     </main>
 </body>

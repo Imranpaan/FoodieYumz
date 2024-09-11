@@ -132,14 +132,14 @@ def admin():
         flash('Restaurant added successfully.')
         return redirect(url_for('admin'))
 
-    # Get search query
+    #search query
     search_query = request.args.get('search', '')
     
     if search_query:
-        # If there is a search query, filter restaurants by name
+        # when search, filter restaurants by name
         restaurants = Restaurant.query.filter(Restaurant.name.ilike(f'%{search_query}%')).all()
     else:
-        # Fetch all restaurants when there is no search query
+        # no search, came all restaurant
         restaurants = Restaurant.query.all()
     
     return render_template('admin_page.html', form=form, restaurants=restaurants, search_query=search_query)
@@ -151,7 +151,7 @@ def add_restaurant():
         flash('Access denied: Admins only.')
         return redirect(url_for('index'))
 
-    form = AddRestaurantForm()  # Ensure you have this form defined
+    form = AddRestaurantForm() 
 
     if form.validate_on_submit():
         new_restaurant = Restaurant(
@@ -226,10 +226,10 @@ def main():
     search_query = request.args.get('search', '')
     
     if search_query:
-        # If there is a search query, filter restaurants by name
+        # search query, filter restaurants by name
         restaurants = Restaurant.query.filter(Restaurant.name.ilike(f'%{search_query}%')).all()
     else:
-        # Fetch all restaurants when there is no search query
+        # NO SEARCH all restaurant came in
         restaurants = Restaurant.query.all()
     
     return render_template('main_page.html', restaurants=restaurants, search_query=search_query)
