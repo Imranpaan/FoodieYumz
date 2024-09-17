@@ -118,6 +118,12 @@
         .form-actions {
             margin-top: 10px;
         }
+        .image-upload {
+            margin-top: 20px;
+        }
+        .image-upload input[type="file"] {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -140,7 +146,7 @@
 
         <!-- ADD RESTAURANT -->
         <h2>Add a Restaurant</h2>
-        <form action="{{ url_for('add_restaurant') }}" method="post">
+        <form action="{{ url_for('add_restaurant') }}" method="post" enctype="multipart/form-data">
             {{ form.hidden_tag() }} <!-- Include CSRF token -->
             <div>
                 <label for="name">Restaurant Name</label><br>
@@ -149,6 +155,10 @@
             <div>
                 <label for="description">Description</label><br>
                 <textarea id="description" name="description" cols="50" rows="4"></textarea>
+            </div>
+            <div class="image-upload">
+                <label for="picture">Upload Picture</label><br>
+                <input type="file" id="picture" name="picture" accept="image/*">
             </div>
             <div>
                 <input type="submit" value="Add Restaurant" class="add-btn">
@@ -163,6 +173,10 @@
                     <div class="restaurant-details">
                         <h3 class="restaurant-name">{{ restaurant.name }}</h3>
                         <p class="restaurant-description">{{ restaurant.description }}</p>
+
+                        {% if restaurant.picture %}
+                        <img src="{{ url_for('static', filename='uploads/' + restaurant.picture) }}" alt="Restaurant Picture" style="width:100px;">
+                        {% endif %}
 
                         <!-- Display comments for the restaurant -->
                         <h4>Comments:</h4>

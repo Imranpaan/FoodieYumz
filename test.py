@@ -1,4 +1,5 @@
 import os
+from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -9,11 +10,13 @@ from wtforms import StringField, PasswordField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Length, EqualTo
 from flask_migrate import Migrate
 from flask_wtf.file import FileField, FileAllowed
+import random
+from sqlalchemy.sql import func
 
 # Flask setup
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret_key_here'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///foodieyumz.db'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -22,7 +25,7 @@ csrf = CSRFProtect(app)
 # Initialize Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'
+login_manager.login_view = 'user_login'  # Set default login view for users
 
 # Define allowed extensions
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}
@@ -36,6 +39,7 @@ class Restaurant(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
+    picture = db.Column(db.String(150), nullable=True)
     comments = db.relationship('Comment', backref='restaurant', lazy=True)
 
 class Comment(db.Model):
@@ -44,6 +48,20 @@ class Comment(db.Model):
     picture = db.Column(db.String(150), nullable=True)  # Store picture filename
     restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurant.id'), nullable=False)
 
+class Admin(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), unique=True, nullable=False)
+    password = db.Column(db.String(128), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
+
+    def __init__(self, username, password, is_admin=False):
+        self.username = username
+        self.password = generate_password_hash(password)
+        self.is_admin = is_admin
+
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
+    
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
@@ -61,7 +79,10 @@ class User(UserMixin, db.Model):
 # Flask-Login user loader
 @login_manager.user_loader
 def user_loader(user_id):
-    return User.query.get(user_id)
+    user = Admin.query.get(user_id)
+    if not user:
+        user = User.query.get(user_id)
+    return user
 
 # Forms
 class AdminSignupForm(FlaskForm):
@@ -75,15 +96,28 @@ class AdminLoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
 
-class EditRestaurantForm(FlaskForm):
-    name = StringField('Restaurant Name', validators=[DataRequired(), Length(max=100)])
-    description = TextAreaField('Description')
-    submit = SubmitField('Save Changes')
+class UserSignupForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired(), Length(min=4, max=64)])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=8, max=128)])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Sign up')
+
+class UserLoginForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Login')
 
 class AddRestaurantForm(FlaskForm):
     name = StringField('Restaurant Name', validators=[DataRequired(), Length(max=100)])
     description = TextAreaField('Description')
+    picture = FileField('Upload Restaurant Picture', validators=[FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')])
     submit = SubmitField('Add Restaurant')
+
+class EditRestaurantForm(FlaskForm):
+    name = StringField('Restaurant Name', validators=[DataRequired(), Length(max=100)])
+    description = TextAreaField('Description')
+    picture = FileField('Upload Restaurant Picture', validators=[FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')])
+    submit = SubmitField('Save Changes')
 
 class CommentForm(FlaskForm):
     comment = TextAreaField('Add a Comment', validators=[DataRequired()])
@@ -92,15 +126,15 @@ class CommentForm(FlaskForm):
 
 # Routes
 @app.route('/admin/login', methods=['GET', 'POST'])
-def login():
+def admin_login():
     form = AdminLoginForm()
     if form.validate_on_submit():
         username = form.username.data
         password = form.password.data
-        user = User.query.filter_by(username=username).first()
-        if user and user.check_password(password):
-            login_user(user)
-            if user.is_admin:
+        admin = Admin.query.filter_by(username=username).first()
+        if admin and admin.check_password(password):
+            login_user(admin)
+            if admin.is_admin:
                 return redirect(url_for('admin'))
             else:
                 return redirect(url_for('index'))
@@ -108,15 +142,33 @@ def login():
             flash('Invalid username or password')
     return render_template('admin_login.html', form=form)
 
+@app.route('/user/login', methods=['GET', 'POST'])
+def user_login():
+    form = UserLoginForm()  # Use UserLoginForm here
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+        user = User.query.filter_by(username=username).first()
+        if user and user.check_password(password):
+            login_user(user)
+            return redirect(url_for('homepage'))
+        else:
+            flash('Invalid username or password')
+    return render_template('user_login.html', form=form)
+
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('login'))
+    return redirect(url_for('user_login'))  # Redirect to user login page
 
 @app.route('/admin', methods=['GET', 'POST'])
-@login_required
 def admin():
+    # Check if user is logged in
+    if not current_user.is_authenticated:
+        return redirect(url_for('admin_login'))
+
+    # Check if the user is an admin
     if not current_user.is_admin:
         flash('Access denied: Admins only.')
         return redirect(url_for('index'))
@@ -124,25 +176,37 @@ def admin():
     form = AddRestaurantForm()
 
     if form.validate_on_submit():
-        name = form.name.data
-        description = form.description.data
-        new_restaurant = Restaurant(name=name, description=description)
+        filename = None
+        if form.picture.data:
+            picture = form.picture.data
+            if allowed_file(picture.filename):
+                filename = secure_filename(picture.filename)
+                picture_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                picture.save(picture_path)
+        
+        new_restaurant = Restaurant(
+            name=form.name.data,
+            description=form.description.data,
+            picture=filename
+        )
         db.session.add(new_restaurant)
         db.session.commit()
         flash('Restaurant added successfully.')
         return redirect(url_for('admin'))
 
-    #search query
+    # Search query
     search_query = request.args.get('search', '')
-    
+
     if search_query:
-        # when search, filter restaurants by name
-        restaurants = Restaurant.query.filter(Restaurant.name.ilike(f'%{search_query}%')).all()
+        # When search, filter restaurants by name and sort them
+        restaurants = Restaurant.query.filter(Restaurant.name.ilike(f'%{search_query}%')).order_by(Restaurant.name).all()
     else:
-        # no search, came all restaurant
-        restaurants = Restaurant.query.all()
-    
+        # No search, get all restaurants and sort by name
+        restaurants = Restaurant.query.order_by(Restaurant.name).all()
+
     return render_template('admin_page.html', form=form, restaurants=restaurants, search_query=search_query)
+
+
 
 @app.route('/admin/add_restaurant', methods=['GET', 'POST'])
 @login_required
@@ -151,12 +215,21 @@ def add_restaurant():
         flash('Access denied: Admins only.')
         return redirect(url_for('index'))
 
-    form = AddRestaurantForm() 
+    form = AddRestaurantForm()
 
     if form.validate_on_submit():
+        filename = None
+        if form.picture.data:
+            picture = form.picture.data
+            if allowed_file(picture.filename):
+                filename = secure_filename(picture.filename)
+                picture_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                picture.save(picture_path)
+        
         new_restaurant = Restaurant(
             name=form.name.data,
-            description=form.description.data
+            description=form.description.data,
+            picture=filename
         )
         db.session.add(new_restaurant)
         db.session.commit()
@@ -178,6 +251,14 @@ def edit_restaurant(restaurant_id):
     if form.validate_on_submit():
         restaurant.name = form.name.data
         restaurant.description = form.description.data
+
+        picture = form.picture.data
+        if isinstance(picture, FileStorage) and allowed_file(picture.filename):
+            filename = secure_filename(picture.filename)
+            picture_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            picture.save(picture_path)
+            restaurant.picture = filename
+
         db.session.commit()
         flash('Restaurant details updated successfully.')
         return redirect(url_for('admin'))
@@ -205,32 +286,77 @@ def admin_signup():
     if form.validate_on_submit():
         username = form.username.data
         password = form.password.data
+        existing_admin = Admin.query.filter_by(username=username).first()
+        if existing_admin:
+            flash('Username already exists. Maybe try to login or choose a different username.')
+            return redirect(url_for('admin_signup'))
+        new_admin = Admin(username, password, is_admin=True)
+        db.session.add(new_admin)
+        db.session.commit()
+        login_user(new_admin)
+        flash('Admin user created successfully. Please login to access the admin page.')
+        return redirect(url_for('admin_login'))
+    return render_template('admin_signup.html', form=form)
+
+@app.route('/user/signup', methods=['GET', 'POST'])
+def user_signup():
+    form = UserSignupForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
             flash('Username already exists. Maybe try to login or choose a different username.')
-            return redirect(url_for('admin_signup'))
-        new_user = User(username, password, is_admin=True)
+            return redirect(url_for('user_signup'))
+        new_user = User(username, password)
         db.session.add(new_user)
         db.session.commit()
         login_user(new_user)
-        flash('Admin user created successfully. Please login to access the admin page.')
-        return redirect(url_for('login'))
-    return render_template('admin_signup.html', form=form)
+        flash('User account created successfully. Please login.')
+        return redirect(url_for('user_login'))
+    return render_template('user_signup.html', form=form)
+
+@app.route('/restaurant/<int:restaurant_id>', methods=['GET'])
+def restaurant_page(restaurant_id):
+    restaurant = Restaurant.query.get_or_404(restaurant_id)
+    return render_template('restaurant_page.html', restaurant=restaurant)
+
+@app.route('/submit_comment/<int:restaurant_id>', methods=['POST'])
+def submit_comment(restaurant_id):
+    content = request.form['content']
+    picture = request.files.get('picture')
+
+    # Create a new Comment object
+    new_comment = Comment(content=content, restaurant_id=restaurant_id)
+
+    if picture:
+        # Save the picture file and attach the filename to the comment
+        picture_filename = secure_filename(picture.filename)
+        picture.save(os.path.join(app.config['UPLOAD_FOLDER'], picture_filename))
+        new_comment.picture = picture_filename
+
+    # Add the comment to the database
+    db.session.add(new_comment)
+    db.session.commit()
+
+    # Redirect back to the restaurant page
+    return redirect(url_for('restaurant_page', restaurant_id=restaurant_id))
 
 @app.route('/index')
 def index():
     return 'Welcome to the index page!'
 
 @app.route('/main', methods=['GET'])
+@login_required
 def main():
     search_query = request.args.get('search', '')
     
     if search_query:
-        # search query, filter restaurants by name
-        restaurants = Restaurant.query.filter(Restaurant.name.ilike(f'%{search_query}%')).all()
+        # Search query, filter restaurants by name and sort them
+        restaurants = Restaurant.query.filter(Restaurant.name.ilike(f'%{search_query}%')).order_by(Restaurant.name).all()
     else:
-        # NO SEARCH all restaurant came in
-        restaurants = Restaurant.query.all()
+        # No search, get all restaurants and sort by name
+        restaurants = Restaurant.query.order_by(Restaurant.name).all()
     
     return render_template('main_page.html', restaurants=restaurants, search_query=search_query)
 
@@ -260,12 +386,24 @@ def comment_page(restaurant_id):
     return render_template('comment_page.html', restaurant=restaurant, form=form)
 
 @app.route('/delete-comment/<int:comment_id>', methods=['POST'])
+@login_required
 def delete_comment(comment_id):
-    # Code to delete the comment
     comment = Comment.query.get_or_404(comment_id)
     db.session.delete(comment)
     db.session.commit()
+    flash('Comment deleted successfully.')
     return redirect(url_for('admin'))
+
+from sqlalchemy.sql import func
+
+@app.route('/homepage')
+@login_required
+def homepage():
+    user_name = current_user.username
+    #three random restaurants
+    recommended_restaurants = Restaurant.query.order_by(func.random()).limit(3).all()
+    return render_template('homepage.html', user_name=user_name, recommended_restaurants=recommended_restaurants)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
