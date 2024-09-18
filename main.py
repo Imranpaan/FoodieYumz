@@ -152,9 +152,8 @@ def login():
             next_page = request.args.get('next')
             return redirect(next_page) if next_page else redirect(url_for('home'))
         else:
-            return redirect(url_for('home'))
-    else:
-        flash('Invalid login credentials. Pls try again.', 'danger')  
+            flash('Invalid login credentials. Please try again.','danger')
+            return redirect(url_for('login'))
     
     return render_template('login.html', form=form)
 
