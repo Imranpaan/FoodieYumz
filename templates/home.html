@@ -65,25 +65,81 @@
         .food-item h2 {
             margin: 0;
         }
+        .profile-container {
+            position: relative;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .profile-container img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+        .profile-container h2 {
+            color: #333;
+        }
+        .profile-container p {
+            font-size: 14px;
+            color: #666;
+        }
+        .profile-container a {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 14px;
+            color: #fff;
+            background-color: #007bff;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        .profile-container a:hover {
+            background-color: #0056b3;
+        }
+        .logout-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #dc3545;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+        .logout-button:hover {
+            background-color: #c82333;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Welcome to FoodieYumz</h1>
+        
+        {% if current_user.is_authenticated %}
+            <div class="profile-container">
+                <a href="{{ url_for('logout') }}" class="logout-button">Logout</a>
+                <h2>{{ current_user.username }}'s Profile</h2>
+                <img src="{{ current_user.profile_picture or url_for('static', filename='images/user_default_icon.jpg') }}" alt="Profile Picture">
+                <p>{{ current_user.bio or "This user is too lazy. He/She hasn't written a bio yet." }}</p>
+                <a href="{{ url_for('edit_profile') }}">Edit Profile</a>
+            </div>    
+        {% else %}
 
-        <div class="button-container">
-            <a href="{{ url_for('login') }}">Log In</a>
-            <a href="{{ url_for('signup') }}">Sign Up</a>
-            <a href="{{ url_for('logout') }}">Log Out</a>
+            <div class="button-container">
+                <a href="{{ url_for('login') }}">Log In</a>
+                <a href="{{ url_for('signup') }}">Sign Up</a>
+                <a href="{{ url_for('logout') }}">Log Out</a>
+            </div>
+        {% endif %}
+
+        <div class="button-container">   
+            <h2>Restaurants</h2>
+            <a href="{{ url_for('deens_cafe_detail') }}" class="btn btn-primary">Deen's Cafe</a>
+            <a href="{{ url_for('haji_tapah_cafe_detail') }}" class="btn btn-primary">Haji Tapah Cafe</a>
+            <a href="{{ url_for('starbees_detail') }}" class="btn btn-primary">Starbees</a>
         </div>
-
-    <div class="button-container">   
-        <h2>Restaurants</h2>
-        <a href="{{ url_for('deens_cafe_detail') }}" class="btn btn-primary">Deen's Cafe</a>
-        <a href="{{ url_for('haji_tapah_cafe_detail') }}" class="btn btn-primary">Haji Tapah Cafe</a>
-        <a href="{{ url_for('starbees_detail') }}" class="btn btn-primary">Starbees</a>
-    </div>
-    {% for item in food %}
+    
+        {% for item in food %}
             <div class="food-item">
                 <img src="{{ item.food_image }}" alt="{{ item.food_name }}">
                 <div>

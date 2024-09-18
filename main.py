@@ -6,7 +6,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, IntegerField, TextAreaField
-from wtforms.validators import DataRequired, Email, EqualTo
+from wtforms.validators import DataRequired, Email, EqualTo, Optional
+import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__, template_folder="templates")
 app.config['SECRET_KEY'] = "thank_you"
@@ -18,12 +20,17 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 bcrypt = Bcrypt(app)
 migrate = Migrate(app, db)
+UPLOAD_FOLDER = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
+    profile_picture = db.Column(db.String(255), default='static/images/user_default_icon.jpg')
+    bio = db.Column(db.String(255), default="This user is too lazy, he/she hasn't added any bio yet.")
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -84,6 +91,11 @@ class Restaurant(db.Model):
     description = db.Column(db.Text, nullable=False)
     image = db.Column(db.String(255))  # Image URL for restaurant
     foods = db.relationship('Food', backref='restaurant', lazy=True)
+
+class UpdateProfileForm(FlaskForm):
+    profile_picture = StringField('Profile Picture URL', validators=[Optional()])
+    bio = TextAreaField('Bio', validators=[Optional()])
+    submit = SubmitField('Update Profile')
 
     def __repr__(self):
         return f'<Restaurant {self.name}>'
@@ -267,6 +279,9 @@ def sample_foods():
     db.session.add_all(foods)
     db.session.commit()
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @app.route('/restaurant/deens_cafe')
 def deens_cafe_detail():
     deens_cafe = Restaurant.query.filter_by(name="Deen's Cafe").first()
@@ -293,6 +308,51 @@ def starbees_detail():
         return redirect(url_for('home'))
     foods = Food.query.filter_by(restaurant_id=starbees.id).all()
     return render_template('restaurant_detail.html', restaurant=starbees, foods=foods)
+
+@app.route('/profile', methods=['GET'])
+@login_required
+def view_profile():
+    return render_template('profile.html', user=current_user)
+
+@app.route('/profile/edit', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    form = UpdateProfileForm()
+    if form.validate_on_submit():
+        if 'profile_picture' in request.files:
+            file = request.files['profile_picture']
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+                current_user.profile_picture = url_for('static', filename='uploads/' + filename)
+
+        current_user.bio = form.bio.data
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('home'))
+
+    return render_template('edit_profile.html', title='Edit Profile', form=form)
+
+@app.route('/profile')
+@login_required
+def profile():
+    return render_template('profile.html', user=current_user)
+
+@app.context_processor
+def inject_user():
+    return dict(current_user=current_user)
+
+@app.route('/profile/reset', methods=['POST'])
+@login_required
+def reset_profile():
+    current_user.profile_picture = 'static/images/user_default_icon.jpg'
+    current_user.bio = "This user is too lazy, he/she hasn't added any bio yet."
+    db.session.commit()
+    
+    # Redirect to the homepage
+    flash('Profile has been reset to default settings.', 'success')
+    return redirect(url_for('home'))
 
 if __name__ == '__main__':
     with app.app_context():
