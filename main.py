@@ -182,14 +182,20 @@ def logout():
 @app.route('/delete_account', methods=['POST'])
 @login_required
 def delete_account():
+    password = request.form.get('password')
     user = User.query.get(current_user.id)
-    db.session.delete(user)
-    db.session.commit()
-    logout_user()
-    session.clear()
-    flash('Account deleted successfully.','success')
-    return redirect(url_for('home'))
 
+    if user and bcrypt.check_password_hash(user.password, password):
+        db.session.delete(user)
+        db.session.commit()
+        logout_user()
+        session.clear()
+        flash('Account deleted successfully.', 'success')
+        return redirect(url_for('home'))
+    else:
+        flash('Invalid password. Account not deleted.', 'danger')
+        return redirect(url_for('home'))
+    
 #Change p/w
 @app.route('/change_password', methods=['GET', 'POST'])
 @login_required
