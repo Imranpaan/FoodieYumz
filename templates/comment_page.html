@@ -39,6 +39,11 @@
             border-bottom: 2px solid #ccc;
             padding-bottom: 10px;
         }
+        .restaurant img {
+            max-width: 200px;
+            height: auto;
+            margin-top: 10px;
+        }
         .form-container {
             margin-top: 20px;
         }
@@ -83,10 +88,13 @@
         <div class="restaurant">
             <h2>{{ restaurant.name }}</h2>
             <p>{{ restaurant.description }}</p>
+            {% if restaurant.picture %}
+            <img src="{{ url_for('static', filename='uploads/' + restaurant.picture) }}" alt="Restaurant Picture">
+            {% endif %}
         </div>
         <div class="form-container">
             <form action="{{ url_for('comment_page', restaurant_id=restaurant.id) }}" method="post" enctype="multipart/form-data">
-                {{ form.hidden_tag() }} <!-- This includes the CSRF token -->
+                {{ form.hidden_tag() }} 
                 <div>
                     {{ form.comment.label }}<br>
                     {{ form.comment(rows=5, placeholder='Enter your comment here...') }}

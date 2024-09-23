@@ -62,20 +62,6 @@ class Admin(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password, password)
     
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), unique=True, nullable=False)
-    password = db.Column(db.String(128), nullable=False)
-    is_admin = db.Column(db.Boolean, default=False)
-
-    def __init__(self, username, password, is_admin=False):
-        self.username = username
-        self.password = generate_password_hash(password)
-        self.is_admin = is_admin
-
-    def check_password(self, password):
-        return check_password_hash(self.password, password)
-
 # Flask-Login user loader
 @login_manager.user_loader
 def user_loader(user_id):
@@ -92,17 +78,6 @@ class AdminSignupForm(FlaskForm):
     submit = SubmitField('Sign up')
 
 class AdminLoginForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
-    password = PasswordField('Password', validators=[DataRequired()])
-    submit = SubmitField('Login')
-
-class UserSignupForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired(), Length(min=4, max=64)])
-    password = PasswordField('Password', validators=[DataRequired(), Length(min=8, max=128)])
-    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
-    submit = SubmitField('Sign up')
-
-class UserLoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
@@ -141,20 +116,6 @@ def admin_login():
         else:
             flash('Invalid username or password')
     return render_template('admin_login.html', form=form)
-
-@app.route('/user/login', methods=['GET', 'POST'])
-def user_login():
-    form = UserLoginForm()  # Use UserLoginForm here
-    if form.validate_on_submit():
-        username = form.username.data
-        password = form.password.data
-        user = User.query.filter_by(username=username).first()
-        if user and user.check_password(password):
-            login_user(user)
-            return redirect(url_for('homepage'))
-        else:
-            flash('Invalid username or password')
-    return render_template('user_login.html', form=form)
 
 @app.route('/logout')
 @login_required
@@ -298,24 +259,6 @@ def admin_signup():
         return redirect(url_for('admin_login'))
     return render_template('admin_signup.html', form=form)
 
-@app.route('/user/signup', methods=['GET', 'POST'])
-def user_signup():
-    form = UserSignupForm()
-    if form.validate_on_submit():
-        username = form.username.data
-        password = form.password.data
-        existing_user = User.query.filter_by(username=username).first()
-        if existing_user:
-            flash('Username already exists. Maybe try to login or choose a different username.')
-            return redirect(url_for('user_signup'))
-        new_user = User(username, password)
-        db.session.add(new_user)
-        db.session.commit()
-        login_user(new_user)
-        flash('User account created successfully. Please login.')
-        return redirect(url_for('user_login'))
-    return render_template('user_signup.html', form=form)
-
 @app.route('/restaurant/<int:restaurant_id>', methods=['GET'])
 def restaurant_page(restaurant_id):
     restaurant = Restaurant.query.get_or_404(restaurant_id)
@@ -347,7 +290,6 @@ def index():
     return 'Welcome to the index page!'
 
 @app.route('/main', methods=['GET'])
-@login_required
 def main():
     search_query = request.args.get('search', '')
     
