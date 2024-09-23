@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comment Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-image: url("{{ url_for('static', filename='images/background_image.jpg') }}");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #333;
+        }
+        header {
+            background-image: url("{{ url_for('static', filename='images/food_banner.jpg') }}");
+            background-size: cover;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            text-shadow: 2px 2px 4px #000;
+        }
+        h1 {
+            margin: 0;
+            font-size: 3em;
+        }
+        main {
+            background-color: rgba(255, 255, 255, 0.8);
+            margin: 20px auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 1000px;
+            border-radius: 10px;
+        }
+        .restaurant {
+            margin-bottom: 30px;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 10px;
+        }
+        .restaurant img {
+            max-width: 200px;
+            height: auto;
+            margin-top: 10px;
+        }
+        .form-container {
+            margin-top: 20px;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+        }
+        input[type="submit"] {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px; /* Add margin to space out buttons */
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        .cancel-button {
+            background-color: #dc3545;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none; /* Remove underline from link */
+        }
+        .cancel-button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Comment on {{ restaurant.name }}</h1>
+    </header>
+    <main>
+        <div class="restaurant">
+            <h2>{{ restaurant.name }}</h2>
+            <p>{{ restaurant.description }}</p>
+            {% if restaurant.picture %}
+            <img src="{{ url_for('static', filename='uploads/' + restaurant.picture) }}" alt="Restaurant Picture">
+            {% endif %}
+        </div>
+        <div class="form-container">
+            <form action="{{ url_for('comment_page', restaurant_id=restaurant.id) }}" method="post" enctype="multipart/form-data">
+                {{ form.hidden_tag() }} 
+                <div>
+                    {{ form.comment.label }}<br>
+                    {{ form.comment(rows=5, placeholder='Enter your comment here...') }}
+                </div>
+                <div>
+                    {{ form.picture.label }}<br>
+                    {{ form.picture() }}
+                </div>
+                <div>
+                    <input type="submit" value="Submit Comment">
+                    <a href="{{ url_for('main') }}" class="cancel-button">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </main>
+</body>
+</html>
