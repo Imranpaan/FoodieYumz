@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Sign-up</title>
+    <title>Admin Login</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         /* Inline CSS for quick customization */
@@ -49,8 +49,6 @@
             padding: 10px;
             border-radius: 5px;
             border: 1px solid #ddd;
-            font-family: Arial, sans-serif;
-            font-size: 16px;
         }
         input[type="submit"] {
             background-color: #4CAF50;
@@ -82,7 +80,7 @@
 </head>
 <body>
     <header>
-        <h1>Admin Sign-up</h1>
+        <h1>Admin Login</h1>
     </header>
 
     <main>
@@ -97,29 +95,17 @@
             </div>
           {% endif %}
         {% endwith %}
-        
+
         <form action="" method="post">
           {{ form.hidden_tag() }}
-          
-          <!-- Username -->
           <div>
-            <label for="username">{{ form.username.label }}</label><br>
-            {{ form.username(size=32) }}
+            {{ form.username.label }}<br>
+            {{ form.username() }}
           </div>
-          
-          <!-- Password -->
           <div>
-            <label for="password">{{ form.password.label }}</label><br>
-            {{ form.password(size=32) }}
+            {{ form.password.label }}<br>
+            {{ form.password() }}
           </div>
-          
-          <!-- ConfirmING Password  -->
-          <div>
-            <label for="confirm_password">{{ form.confirm_password.label }}</label><br>
-            {{ form.confirm_password(size=32) }}
-          </div>
-          
-          <!-- Submit button -->
           <div>
             {{ form.submit() }}
           </div>
