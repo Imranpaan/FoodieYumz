@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Admin Login</title>
+  </head>
+  <body>
+    <h1>Admin Login</h1>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form action="" method="post">
+      {{ form.hidden_tag() }}
+      {{ form.username.label }} {{ form.username() }}<br><br>
+      {{ form.password.label }} {{ form.password() }}<br><br>
+      {{ form.submit() }}
+    </form>
+  </body>
+</html>
