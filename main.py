@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, url_for, flash, session, redirect, jsonify
-from models import db, User, Food, Comment, Restaurant, Rating
 from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
