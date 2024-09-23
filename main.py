@@ -84,7 +84,7 @@ def signup():
         
         #Check if email exist edy
         if User.query.filter_by(email=email).first():
-            flash('Email already exists. Please use a different one.', 'danger')
+            flash('Email already exists. Please use another one.', 'danger')
             return redirect(url_for('signup'))
           
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
@@ -214,7 +214,6 @@ def reset_profile():
     current_user.bio = "This user is too lazy, he/she hasn't added any bio yet."
     db.session.commit()
     
-    # Redirect to the homepage
     flash('Profile has been reset to default settings.', 'success')
     return redirect(url_for('home'))
 
