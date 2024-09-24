@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -75,9 +74,6 @@
             background: linear-gradient(45deg, #45a049, #4CAF50);
             transform: scale(1.05);
         }
-        .search-form input[type="submit"]:active {
-            background: linear-gradient(45deg, #388e3c, #4CAF50);
-        }
         .restaurant-section {
             border: 1px solid #ddd;
             margin-bottom: 20px;
@@ -125,13 +121,54 @@
         .image-upload input[type="file"] {
             margin-bottom: 10px;
         }
+
+        /* Style for navigation */
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            display: flex;
+            justify-content: flex-end;
+            background-color: #333;
+        }
+        nav ul li {
+            margin: 0 15px;
+        }
+        nav ul li a {
+            text-decoration: none;
+            color: white;
+            padding: 14px 20px;
+            display: block;
+        }
+        nav ul li a:hover {
+            background-color: #555;
+        }
     </style>
- <header>
-    <h1>Admin Page</h1>
-</header>
-<section class="welcome-message">
-    <p>Welcome, {{ current_user.username }}!</p>
-</section>
+</head>
+<body>
+    <!-- Navigation bar -->
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('homepage') }}">Home</a></li>
+            <li><a href="{{ url_for('main') }}">Restaurants</a></li>
+
+            <!-- Show Admin page link only if the user is an authenticated admin -->
+            {% if current_user.is_authenticated and current_user.is_admin %}
+            <li><a href="{{ url_for('admin') }}">Admin Page</a></li>
+            {% endif %}
+            
+            <!-- Add logout option if user is authenticated -->
+            {% if current_user.is_authenticated %}
+            <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <header>
+        <h1>Admin Page</h1>
+    </header>
+    <section class="welcome-message">
+        <p>Welcome, {{ current_user.username }}!</p>
+    </section>
 
     <main>
         <!-- Search FUNCTION -->

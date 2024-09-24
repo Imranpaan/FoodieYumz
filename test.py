@@ -126,7 +126,7 @@ def admin_login():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('user_login'))  # Redirect to user login page
+    return redirect(url_for('admin_login'))  # Redirect to user login page
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
@@ -371,12 +371,10 @@ def delete_comment(comment_id):
 from sqlalchemy.sql import func
 
 @app.route('/homepage')
-@login_required
 def homepage():
-    user_name = current_user.username
     #three random restaurants
     recommended_restaurants = Restaurant.query.order_by(func.random()).limit(3).all()
-    return render_template('homepage.html', user_name=user_name, recommended_restaurants=recommended_restaurants)
+    return render_template('homepage.html', recommended_restaurants=recommended_restaurants)
 
 
 if __name__ == '__main__':

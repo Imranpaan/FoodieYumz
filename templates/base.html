@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FoodieYumz{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <!-- Navigation bar -->
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('homepage') }}">Home</a></li>
+            <li><a href="{{ url_for('main') }}">Restaurants</a></li>
+
+            <!-- Show Admin page link only if the user is an authenticated admin -->
+            {% if current_user.is_authenticated and current_user.is_admin %}
+            <li><a href="{{ url_for('admin') }}">Admin Page</a></li>
+            {% endif %}
+            
+            <!-- Add logout option if user is authenticated -->
+            {% if current_user.is_authenticated %}
+            <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <!-- Content block for child templates -->
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+</body>
+</html>

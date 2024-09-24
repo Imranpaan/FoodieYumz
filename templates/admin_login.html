@@ -50,15 +50,17 @@
             border-radius: 5px;
             border: 1px solid #ddd;
         }
-        input[type="submit"] {
+        input[type="submit"], .go-to-main-button {
             background-color: #4CAF50;
             color: white;
             padding: 10px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            text-align: center;
+            display: inline-block; /* Add this for side-by-side alignment */
         }
-        input[type="submit"]:hover {
+        input[type="submit"]:hover, .go-to-main-button:hover {
             background-color: #45a049;
         }
         .message-container {
@@ -75,6 +77,10 @@
         }
         .message-container li {
             margin-bottom: 10px;
+        }
+        .button-container {
+            display: flex; /* Add flex display for button alignment */
+            gap: 10px; /* Add space between buttons */
         }
     </style>
 </head>
@@ -106,8 +112,13 @@
             {{ form.password.label }}<br>
             {{ form.password() }}
           </div>
-          <div>
-            {{ form.submit() }}
+          <div class="button-container">
+            <div>
+              {{ form.submit() }}
+            </div>
+            <div>
+              <a href="{{ url_for('main') }}" class="go-to-main-button">Go to Main Page</a>
+            </div>
           </div>
         </form>
     </main>

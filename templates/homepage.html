@@ -74,15 +74,54 @@
         .main-page-button:hover {
             background-color: #218838;
         }
+
+        /* Navigation Styles */
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            display: flex;
+            justify-content: flex-end;
+            background-color: #333;
+        }
+        nav ul li {
+            margin: 0 15px;
+        }
+        nav ul li a {
+            text-decoration: none;
+            color: white;
+            padding: 14px 20px;
+            display: block;
+        }
+        nav ul li a:hover {
+            background-color: #555;
+        }
     </style>
 </head>
 <body>
+    <!-- Navigation bar -->
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('homepage') }}">Home</a></li>
+            <li><a href="{{ url_for('main') }}">Restaurants</a></li>
+
+            <!-- Show Admin page link only if the user is an authenticated admin -->
+            {% if current_user.is_authenticated and current_user.is_admin %}
+            <li><a href="{{ url_for('admin') }}">Admin Page</a></li>
+            {% endif %}
+            
+            <!-- Add logout option if user is authenticated -->
+            {% if current_user.is_authenticated %}
+            <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
     <header>
         <h1>Home Page</h1>
     </header>
     <main>
         <div class="welcome-section">
-            <h2>Welcome {{ user_name }}!</h2>
+            <h2>Welcome FoodieLovers!!!</h2>
             <p>Welcome To FoodieYumz@MMU where you can discover the uniqueness and the yumminess of restaurants in MMU!!!</p>
             <p>Wanna see some recommendations? CLICK ON ONE OF THESE:</p>
             <div class="button-container">
