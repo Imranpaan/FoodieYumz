@@ -100,8 +100,19 @@
                     {{ form.comment(rows=5, placeholder='Enter your comment here...') }}
                 </div>
                 <div>
-                    {{ form.picture.label }}<br>
+                    <label for="picture">Upload a picture:</label><br>
                     {{ form.picture() }}
+                </div>
+                <div>
+                    <label for="rating">Rate the restaurant:</label>
+                    <select name="rating" id="rating" required>
+                        <option value="" disabled selected>Select a rating</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
                 </div>
                 <div>
                     <input type="submit" value="Submit Comment">
