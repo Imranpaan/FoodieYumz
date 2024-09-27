@@ -201,12 +201,19 @@ def edit_profile():
                     old_file_path = os.path.join(app.root_path, current_user.profile_picture[1:]) 
                     if os.path.exists(old_file_path):
                         os.remove(old_file_path)
-                
-                filename = secure_filename(file.filename)
-                unique_filename = str(int(time.time())) + "_" + filename
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+
+                original_filename = secure_filename(file.filename)
+                base_filename, ext = os.path.splitext(original_filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], original_filename)
+
+                count = 0
+                while os.path.exists(file_path):
+                    count += 1
+                    new_filename = f"{base_filename}_{count}{ext}"
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
+                                   
                 file.save(file_path)
-                current_user.profile_picture = url_for('static', filename='uploads/' + unique_filename)
+                current_user.profile_picture = url_for('static', filename='uploads/' + os.path.basename(file_path))   
 
         current_user.bio = form.bio.data
         db.session.commit()
