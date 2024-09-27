@@ -9,21 +9,26 @@ from wtforms.validators import DataRequired, Email, EqualTo, Optional
 import os
 from flask_wtf import FlaskForm, CSRFProtect
 from werkzeug.utils import secure_filename
-import test
 import time
+from sqlalchemy import Enum
+from models import User, SignupForm, LoginForm, ChangePasswordForm, UpdateProfileForm
 
 app = Flask(__name__, template_folder="templates")
 app.config['SECRET_KEY'] = "thank_you"
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../instance/database/foodieyumz.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
 
+basedir = os.path.abspath(os.path.dirname(__file__))
+database_dir = os.path.join(basedir, "instance/database")
+os.makedirs(database_dir, exist_ok=True)
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(database_dir, "foodieyumz.db")}'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
 bcrypt = Bcrypt(app)
 migrate = Migrate(app, db)
 csrf = CSRFProtect(app)
+
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -60,9 +65,6 @@ class UpdateProfileForm(FlaskForm):
     profile_picture = StringField('Profile Picture URL', validators=[Optional()])
     bio = TextAreaField('Bio', validators=[Optional()])
     submit = SubmitField('Update Profile')
-
-    def __repr__(self):
-        return f'<Restaurant {self.name}>'
 
 @app.route('/main')
 def main():
@@ -211,7 +213,7 @@ def edit_profile():
         flash('Profile updated successfully!', 'success')
         return redirect(url_for('home'))
 
-    return render_template('edit_profile.html', title='Edit Profile', form=form)
+    return render_template('edit_profile.html', title='Edit Profile' ,form=form)
 
 @app.route('/profile')
 @login_required
@@ -229,7 +231,7 @@ def reset_profile():
         file_path = os.path.join(app.root_path, current_user.profile_picture[1:])
         if os.path.exists(file_path):
             os.remove(file_path)
-    
+
     current_user.profile_picture = 'static/images/user_default_icon.jpg'
     current_user.bio = "This user is too lazy, he/she hasn't added any bio yet."
     db.session.commit()
@@ -241,3 +243,6 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
+
+#database inside instance/database/foodieyumz.db is haiyuan's

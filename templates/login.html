@@ -77,8 +77,12 @@
         .alert-success {
           background-color: #28a745;
         }
+        header {
+            text-align: center; 
+            margin-bottom: 20px;
+        }
         header .logo {
-            width: 100px; 
+            width: 170px; 
             height: auto;
         }
     </style>
@@ -87,7 +91,7 @@
     <header>
         <div class="logo-container">
             <a href="{{ url_for('home') }}">
-                <img src="{{ url_for('static', filename='images/foodieyumz_logo.jpeg') }}" alt="Website Logo" class="logo">
+                <img style="width: 170px; height: auto" src="{{ url_for('static', filename='images/foodieyumz_logo.jpg') }}" alt="Website Logo" class="logo">
             </a>
         </div>
     </header>

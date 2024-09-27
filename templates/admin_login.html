@@ -6,7 +6,6 @@
     <title>Admin Login</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
-        /* Inline CSS for quick customization */
         body {
             font-family: 'Arial', sans-serif;
             background-image: url("{{ url_for('static', filename='images/background_image.jpg') }}");
@@ -58,7 +57,7 @@
             border-radius: 5px;
             cursor: pointer;
             text-align: center;
-            display: inline-block; /* Add this for side-by-side alignment */
+            display: inline-block; 
         }
         input[type="submit"]:hover, .go-to-main-button:hover {
             background-color: #45a049;
@@ -79,8 +78,8 @@
             margin-bottom: 10px;
         }
         .button-container {
-            display: flex; /* Add flex display for button alignment */
-            gap: 10px; /* Add space between buttons */
+            display: flex; 
+            gap: 10px; 
         }
     </style>
 </head>
