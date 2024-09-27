@@ -8,6 +8,7 @@ from wtforms import StringField, PasswordField, SubmitField, IntegerField, TextA
 from wtforms.validators import DataRequired, Email, EqualTo, Optional
 import os
 from werkzeug.utils import secure_filename
+import time
 
 app = Flask(__name__, template_folder="templates")
 app.config['SECRET_KEY'] = "thank_you"
@@ -186,17 +187,25 @@ def edit_profile():
         if 'profile_picture' in request.files:
             file = request.files['profile_picture']
             if file and allowed_file(file.filename):
+                # Delete the old profile picture
+                if current_user.profile_picture != 'static/images/user_default_icon.jpg':
+                    old_file_path = os.path.join(app.root_path, current_user.profile_picture[1:])
+                    if os.path.exists(old_file_path):
+                        os.remove(old_file_path)
+
+                # Save the new profile picture
                 filename = secure_filename(file.filename)
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                unique_filename = str(int(time.time())) + "_" + filename
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
                 file.save(file_path)
-                current_user.profile_picture = url_for('static', filename='uploads/' + filename)
+                current_user.profile_picture = os.path.join('static', 'uploads/', unique_filename)
 
         current_user.bio = form.bio.data
         db.session.commit()
         flash('Profile updated successfully!', 'success')
         return redirect(url_for('home'))
 
-    return render_template('edit_profile.html', title='Edit Profile', form=form)
+    return render_template('edit_profile.html', title='Edit Profile' ,form=form)
 
 @app.route('/profile')
 @login_required
@@ -210,6 +219,11 @@ def inject_user():
 @app.route('/profile/reset', methods=['POST'])
 @login_required
 def reset_profile():
+    if current_user.profile_picture != 'static/images/user_default_icon.jpg':
+        file_path = os.path.join(app.root_path, current_user.profile_picture[1:])
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
     current_user.profile_picture = 'static/images/user_default_icon.jpg'
     current_user.bio = "This user is too lazy, he/she hasn't added any bio yet."
     db.session.commit()
