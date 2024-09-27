@@ -12,6 +12,7 @@ from flask_migrate import Migrate
 from flask_wtf.file import FileField, FileAllowed
 import random
 from sqlalchemy.sql import func
+from models import User
 
 # Flask setup
 app = Flask(__name__)

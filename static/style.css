@@ -184,3 +184,13 @@ h2 {
     color: #007bff;
     margin-bottom: 20px;
 }
+
+.logo-container {
+    text-align: center;
+    margin: 5px 0;
+}
+
+header .logo {
+    width: 30px; 
+    height: auto;
+}

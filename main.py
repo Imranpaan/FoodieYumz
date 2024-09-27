@@ -7,7 +7,10 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, IntegerField, TextAreaField
 from wtforms.validators import DataRequired, Email, EqualTo, Optional
 import os
+from flask_wtf import FlaskForm, CSRFProtect
 from werkzeug.utils import secure_filename
+import test
+import time
 
 app = Flask(__name__, template_folder="templates")
 app.config['SECRET_KEY'] = "thank_you"
@@ -17,8 +20,10 @@ db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
 bcrypt = Bcrypt(app)
 migrate = Migrate(app, db)
+csrf = CSRFProtect(app)
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -59,11 +64,15 @@ class UpdateProfileForm(FlaskForm):
     def __repr__(self):
         return f'<Restaurant {self.name}>'
 
+@app.route('/main')
+def main():
+    return render_template('main.html')
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-@app.route('/')
+@app.route('/home')
 def home():
     return render_template('home.html')
 
@@ -186,10 +195,16 @@ def edit_profile():
         if 'profile_picture' in request.files:
             file = request.files['profile_picture']
             if file and allowed_file(file.filename):
+                if current_user.profile_picture != 'static/images/user_default_icon.jpg':
+                    old_file_path = os.path.join(app.root_path, current_user.profile_picture[1:]) 
+                    if os.path.exists(old_file_path):
+                        os.remove(old_file_path)
+                
                 filename = secure_filename(file.filename)
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                unique_filename = str(int(time.time())) + "_" + filename
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
                 file.save(file_path)
-                current_user.profile_picture = url_for('static', filename='uploads/' + filename)
+                current_user.profile_picture = url_for('static', filename='uploads/' + unique_filename)
 
         current_user.bio = form.bio.data
         db.session.commit()
@@ -210,6 +225,11 @@ def inject_user():
 @app.route('/profile/reset', methods=['POST'])
 @login_required
 def reset_profile():
+    if current_user.profile_picture != 'static/images/user_default_icon.jpg':
+        file_path = os.path.join(app.root_path, current_user.profile_picture[1:])
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    
     current_user.profile_picture = 'static/images/user_default_icon.jpg'
     current_user.bio = "This user is too lazy, he/she hasn't added any bio yet."
     db.session.commit()

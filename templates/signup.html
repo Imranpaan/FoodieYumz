@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
+    <title>Sign Up - User</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -77,9 +77,25 @@
         .login-link a:hover {
             text-decoration: underline;
         }
+        
+        header {
+            text-align: center; 
+            margin-bottom: 20px;
+        }
+        header .logo {
+            width: 100px; 
+            height: auto;
+        }
     </style>
 </head>
 <body>
+    <header></header>
+        <div class="logo-container">
+            <a href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='images/foodieyumz_logo.jpeg') }}" alt="Website Logo" class="logo">
+            </a>
+        </div>
+    </header>
     <div class="container">
         <h1>Sign Up</h1>
 

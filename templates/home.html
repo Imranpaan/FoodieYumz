@@ -162,9 +162,25 @@
             border-radius: 4px;
         }
 
+        header {
+            text-align: center; 
+            margin-bottom: 20px;
+        }
+
+        header .logo {
+            width: 170px; 
+            height: auto;
+        }
     </style>
 </head>
 <body>
+    <header>
+        <div class="logo-container">
+            <a href="{{ url_for('home') }}"></a>
+                <img style="width: 170px; height: auto" src="{{ url_for('static', filename='images/foodieyumz_logo.jpeg') }}" alt="Website Logo" class="logo">
+            </a>
+        </div>
+    </header>
     <div class="container">
         <h1>Welcome to FoodieYumz@MMUCyber</h1>
         

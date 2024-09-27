@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log In</title>
+    <title>Log In - User</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -77,9 +77,20 @@
         .alert-success {
           background-color: #28a745;
         }
+        header .logo {
+            width: 100px; 
+            height: auto;
+        }
     </style>
 </head>
 <body>
+    <header>
+        <div class="logo-container">
+            <a href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='images/foodieyumz_logo.jpeg') }}" alt="Website Logo" class="logo">
+            </a>
+        </div>
+    </header>
     <div class="container">
         <h1>Log In</h1>
 
