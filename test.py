@@ -1,3 +1,4 @@
+
 import os
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
@@ -6,7 +7,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm, CSRFProtect
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField
+from wtforms import StringField, PasswordField, SubmitField, TextAreaField, IntegerField
 from wtforms.validators import DataRequired, Length, EqualTo
 from flask_migrate import Migrate
 from flask_wtf.file import FileField, FileAllowed
@@ -48,7 +49,7 @@ class Comment(db.Model):
     content = db.Column(db.Text, nullable=False)
     picture = db.Column(db.String(150), nullable=True)  # Store picture filename
     restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurant.id'), nullable=False)
-
+    rating = db.Column(db.Integer, nullable=False)
 class Admin(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
@@ -66,10 +67,7 @@ class Admin(UserMixin, db.Model):
 # Flask-Login user loader
 @login_manager.user_loader
 def user_loader(user_id):
-    user = Admin.query.get(user_id)
-    if not user:
-        user = User.query.get(user_id)
-    return user
+    return Admin.query.get(int(user_id)) 
 
 # Forms
 class AdminSignupForm(FlaskForm):
@@ -98,6 +96,7 @@ class EditRestaurantForm(FlaskForm):
 class CommentForm(FlaskForm):
     comment = TextAreaField('Add a Comment', validators=[DataRequired()])
     picture = FileField('Upload Picture', validators=[FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')])
+    rating = IntegerField('Rating (1-5)', validators=[DataRequired()])
     submit = SubmitField('Submit Comment')
 
 # Routes
@@ -108,21 +107,27 @@ def admin_login():
         username = form.username.data
         password = form.password.data
         admin = Admin.query.filter_by(username=username).first()
-        if admin and admin.check_password(password):
+
+        # Debugging logs
+        print(f'Attempting login for username: {username}')
+        print(f'Admin found: {admin is not None}')
+
+        if admin and admin.check_password(password):  # Check password here
             login_user(admin)
-            if admin.is_admin:
-                return redirect(url_for('admin'))
-            else:
-                return redirect(url_for('index'))
+            return redirect(url_for('admin'))  # or redirect to another page
         else:
             flash('Invalid username or password')
+            return redirect(url_for('admin_login'))  # Redirect to clear form
+
     return render_template('admin_login.html', form=form)
+
+
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('user_login'))  # Redirect to user login page
+    return redirect(url_for('admin_login'))  # Redirect to user login page
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
@@ -237,6 +242,11 @@ def delete_restaurant():
     restaurant_id = request.form.get('restaurant_id')
     restaurant = Restaurant.query.get_or_404(restaurant_id)
 
+    # Delete comments associated with the restaurant
+    comments = Comment.query.filter_by(restaurant_id=restaurant_id).all()
+    for comment in comments:
+        db.session.delete(comment)
+
     db.session.delete(restaurant)
     db.session.commit()
     flash(f'Restaurant "{restaurant.name}" has been deleted.')
@@ -269,9 +279,10 @@ def restaurant_page(restaurant_id):
 def submit_comment(restaurant_id):
     content = request.form['content']
     picture = request.files.get('picture')
+    rating = request.form.get('rating', type=int)
 
     # Create a new Comment object
-    new_comment = Comment(content=content, restaurant_id=restaurant_id)
+    new_comment = Comment(content=content, restaurant_id=restaurant_id, rating=rating)
 
     if picture:
         # Save the picture file and attach the filename to the comment
@@ -285,6 +296,7 @@ def submit_comment(restaurant_id):
 
     # Redirect back to the restaurant page
     return redirect(url_for('restaurant_page', restaurant_id=restaurant_id))
+
 
 @app.route('/index')
 def index():
@@ -313,6 +325,13 @@ def comment_page(restaurant_id):
         comment_content = form.comment.data
         picture = form.picture.data
 
+        # Get the rating from the form
+        rating = request.form.get('rating')  # Retrieve the rating from the form
+
+        if not rating:
+            flash('Please select a rating!', 'error')
+            return redirect(url_for('comment_page', restaurant_id=restaurant_id))
+
         if picture and allowed_file(picture.filename):
             filename = secure_filename(picture.filename)
             picture_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -320,32 +339,43 @@ def comment_page(restaurant_id):
         else:
             filename = None
 
-        new_comment = Comment(content=comment_content, restaurant_id=restaurant_id, picture=filename)
+        # Include the rating when creating a new comment
+        new_comment = Comment(content=comment_content, restaurant_id=restaurant_id, picture=filename, rating=rating)
         db.session.add(new_comment)
         db.session.commit()
         flash('Comment added successfully.')
-        return redirect(url_for('main'))
+
+        # Redirect to the specific restaurant page
+        return redirect(url_for('restaurant_page', restaurant_id=restaurant_id))  # Change this to your restaurant page route
 
     return render_template('comment_page.html', restaurant=restaurant, form=form)
+
+
 
 @app.route('/delete-comment/<int:comment_id>', methods=['POST'])
 @login_required
 def delete_comment(comment_id):
     comment = Comment.query.get_or_404(comment_id)
-    db.session.delete(comment)
-    db.session.commit()
-    flash('Comment deleted successfully.')
+    print(f"Deleting comment: {comment.id}, restaurant_id: {comment.restaurant_id}")
+
+    try:
+        db.session.delete(comment)
+        db.session.commit()
+        flash('Comment deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()  # Rollback the session on error
+        flash('Failed to delete comment: ' + str(e), 'error')
+    
     return redirect(url_for('admin'))
+
 
 from sqlalchemy.sql import func
 
 @app.route('/homepage')
-@login_required
 def homepage():
-    user_name = current_user.username
     #three random restaurants
     recommended_restaurants = Restaurant.query.order_by(func.random()).limit(3).all()
-    return render_template('homepage.html', user_name=user_name, recommended_restaurants=recommended_restaurants)
+    return render_template('homepage.html', recommended_restaurants=recommended_restaurants)
 
 
 if __name__ == '__main__':
