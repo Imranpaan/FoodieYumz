@@ -253,3 +253,4 @@ if __name__ == '__main__':
 
 
 #database inside instance/database/foodieyumz.db is haiyuan's
+#make sure when pushin code is changed
