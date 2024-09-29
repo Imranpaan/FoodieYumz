@@ -147,6 +147,7 @@ def home():
     return render_template('home.html')
 
 @app.route('/main', methods=['GET'])
+@login_required
 def main():
     search_query = request.args.get('search', '')
     
