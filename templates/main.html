@@ -52,6 +52,26 @@
             max-width: 1000px;
             border-radius: 10px;
         }
+        .profile-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .profile-info img {
+            border-radius: 50%; /* Make the profile picture circular */
+            margin-right: 10px;
+            width: 50px; /* Set a fixed width for the profile image */
+            height: 50px; /* Set a fixed height for the profile image */
+        }
+        .profile-info a {
+            text-decoration: none;
+            color: inherit; /* Keeps the text color consistent */
+            display: flex;
+            align-items: center;
+        }
+        .profile-info a:hover {
+            color: #0056b3; /* Optional hover effect */
+        }
         .search-form {
             margin-bottom: 20px;
         }
@@ -144,7 +164,7 @@
     <!-- Navigation bar -->
     <nav>
         <ul>
-            <li><a href="{{ url_for('homepage') }}">Home</a></li>
+            <li><a href="{{ url_for('home') }}">Home</a></li>
             <li><a href="{{ url_for('main') }}">Restaurants</a></li>
 
             <!-- Show Admin page link only if the user is an authenticated admin -->
@@ -167,6 +187,20 @@
         </div>
     </header>
     <main>
+
+        <!-- Profile Info Section -->
+        {% if current_user.is_authenticated %}
+        <div class="profile-info">
+            <img src="{{ current_user.profile_picture }}" alt="{{ current_user.username }}'s profile picture">
+                <div>
+                    <p><strong>{{ current_user.username }}</strong></p>
+                    <p>{{ current_user.bio or "No bio available" }}</p>
+                    <a href="{{ url_for('profile', user_id=current_user.id) }}">View Profile</a>
+                </div>
+            </a>
+        </div>
+        {% endif %}
+
         <!-- Search function -->
         <div class="search-form">
             <form action="{{ url_for('main') }}" method="get">
@@ -182,7 +216,7 @@
             <img src="{{ url_for('static', filename='images/' + restaurant.image_url) }}" alt="{{ restaurant.name }}" style="width:100px;">
             {% endif %}
             <div class="comment-form">
-                <a href="{{ url_for('restaurant_page', restaurant_id=restaurant.id) }}">Wanna know more? CLICK HEREE</a>
+                <a href="{{ url_for('restaurant_page', restaurant_id=restaurant.id) }}" class="btn-see-more">Wanna know more? CLICK HEREE</a>
             </div>
         </div>
         {% endfor %}
